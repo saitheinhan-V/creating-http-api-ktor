@@ -1,0 +1,33 @@
+### get all user
+GET http://127.0.0.1:8080/user
+Accept: application/json
+
+###
+POST http://127.0.0.1:8080/user
+Content-Type: application/json
+
+{
+  "id": "3",
+  "name": "Jenny",
+  "age": "22"
+}
+
+### insert new user
+POST http://127.0.0.1:8080/user/users
+Content-Type: application/json
+
+{
+  "id": "1",
+  "name": "John",
+  "age": "20"
+}
+
+###
+POST http://127.0.0.1:8080/user/users
+Content-Type: application/json
+
+{
+"id": "3",
+"name": "Loser",
+"age": "25"
+}
