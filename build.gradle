@@ -24,6 +24,7 @@ dependencies {
     //KMongo
     implementation("org.litote.kmongo:kmongo:4.4.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.4.0")
+    compile 'org.litote.kmongo:kmongo-id:4.4.0'
 //    implementation("org.litote.kmongo:kmongo:4.2.8")
 
     //gson
