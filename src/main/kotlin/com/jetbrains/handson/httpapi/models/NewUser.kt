@@ -8,7 +8,8 @@ val users = mutableListOf<NewUser>()
 @Serializable
 data class NewUser(
     @BsonId
-    val id: Int,
-    val name: String,
-    val age: Int
+    val id: Int=0,
+    val phone: String="",
+    val name: String="",
+    val age: Int=0
 )

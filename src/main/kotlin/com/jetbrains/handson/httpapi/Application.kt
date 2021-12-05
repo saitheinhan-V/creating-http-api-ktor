@@ -5,6 +5,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.jetbrains.handson.httpapi.models.NewUser
 import com.jetbrains.handson.httpapi.models.User
+import com.jetbrains.handson.httpapi.models.users
 import com.jetbrains.handson.httpapi.routes.registerAuthRoutes
 import com.jetbrains.handson.httpapi.routes.registerCustomerRoutes
 import com.jetbrains.handson.httpapi.routes.registerNewUser
@@ -12,14 +13,18 @@ import com.jetbrains.handson.httpapi.routes.registerOrderRoutes
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
+import io.ktor.client.utils.EmptyContent.status
 import io.ktor.features.*
 import io.ktor.gson.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
+import org.litote.kmongo.MongoOperator
 import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.eq
 import org.litote.kmongo.reactivestreams.KMongo
 import java.io.File
 import java.security.KeyFactory
@@ -71,33 +76,41 @@ fun Application.module() {
         }
     }
 
-
-    registerCustomerRoutes()
-    registerOrderRoutes()
     //registerAuthRoutes()
     registerNewUser(col)
 
     routing {
         post("/login") {
-            val user = call.receive<User>()
+            call.parameters
+            val user = call.receive<NewUser>()
             // Check username and password
+            val checkUser = col.findOne("{phone:'${user.phone}'}")
+//            val checkUser = col.findOneById(user.id)
+
             // ...
-            val token = JWT.create()
-                .withAudience(audience)
-                .withIssuer(issuer)
-                .withClaim("username", user.username)
-                .withExpiresAt(Date(System.currentTimeMillis() + 60000))
-                .sign(Algorithm.HMAC256(secret))
-            call.respond(hashMapOf("token" to token))
+            if(checkUser != null && checkUser.id != 0) {
+                val token = JWT.create()
+                    .withAudience(audience)
+                    .withIssuer(issuer)
+                    .withClaim("name", checkUser.id)
+                    .withClaim("phone", checkUser.phone)
+                    .withExpiresAt(Date(System.currentTimeMillis() + 60000000))
+                    .sign(Algorithm.HMAC256(secret))
+                call.respond(hashMapOf("token" to token))
+            }else{
+                call.respondText("No user found", status = HttpStatusCode.NotFound)
+            }
         }
 
         authenticate("auth-jwt") {
             get("/hello") {
                 val principal = call.principal<JWTPrincipal>()
-                val username = principal!!.payload.getClaim("username").asString()
+                val username = principal!!.payload.getClaim("name").asString()
                 val expiresAt = principal.expiresAt?.time?.minus(System.currentTimeMillis())
                 call.respondText("Hello, $username! Token is expired at $expiresAt ms.")
             }
+            registerCustomerRoutes()
+            registerOrderRoutes()
         }
     }
 }
